@@ -18,6 +18,10 @@ contract EgMarket {
     Request[] public requests;
     Offer[] public offers;
 
+    function setMainProvider(address _mainProvider) public {
+        mainProvider = _mainProvider;
+    }
+
     function getMainProvider() public view returns (address) {
         return mainProvider;
     }
