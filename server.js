@@ -32,21 +32,21 @@ const deploy_contract = async () => {
 	// -------------- Testing transactions ------------------------------
 	let mainProvider = accounts[0];
 	instance.methods.setMainProvider(mainProvider).call();
-	instance.methods.placeOffer(100, 50).call({from : accounts[1]});
-	instance.methods.placeOffer(100, 50).call({from : accounts[2]});
-	instance.methods.placeRequest(50).send({from : accounts[3]});
-	let n_offers = await instance.methods.getOffers().call() //.then( (arr) => arr.length );
-	let n_requests = await instance.methods.getRequests().call() //.then( (arr) => arr.length );
+	instance.methods.placeOffer(100, 50).send({from : accounts[1], gas: '9999999'});
+	instance.methods.placeOffer(100, 50).send({from : accounts[2],  gas: '9999999'});
+	instance.methods.placeRequest(50).send({from : accounts[3],  gas: '9999999'});
+	let offers = await instance.methods.getOffers().call() //.then( (arr) => arr.length );
+	let requests = await instance.methods.getRequests().call() //.then( (arr) => arr.length );
 
-	console.log(`n_offers = ${n_offers}`)
-	console.log(`n_requests = ${n_requests}`)
+	console.log(`n_offers = ${offers.length}`)
+	console.log(`n_requests = ${requests.length}`)
 	
 	// ------------------ Express App Setup -----------------------------
 	app.use(express.static('public'));
 	
 	app.use('/', async (req, res) => {
 		res.status(200);
-		res.send(`No. of offfers = ${n_offers} <br> No. of offfers = ${n_requests}`);
+		res.send(`No. of offfers = ${offers.length} <br> No. of offfers = ${requests.length}`);
 	});
 	
 	const PORT = 3000;
