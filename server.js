@@ -31,10 +31,10 @@ const deploy_contract = async () => {
 	
 	// -------------- Testing transactions ------------------------------
 	let mainProvider = accounts[0];
-	instance.methods.setMainProvider(mainProvider).call();
-	instance.methods.placeOffer(100, 50).send({from : accounts[1], gas: '9999999'});
-	instance.methods.placeOffer(100, 50).send({from : accounts[2],  gas: '9999999'});
-	instance.methods.placeRequest(50).send({from : accounts[3],  gas: '9999999'});
+	await instance.methods.setMainProvider(mainProvider).call();
+	await instance.methods.placeOffer(100, 50).send({from : accounts[1], gas: '9999999'});
+	await instance.methods.placeOffer(200, 70).send({from : accounts[2],  gas: '9999999'});
+	await instance.methods.placeRequest(50).send({from : accounts[3],  gas: '9999999'});
 	let offers = await instance.methods.getOffers().call() //.then( (arr) => arr.length );
 	let requests = await instance.methods.getRequests().call() //.then( (arr) => arr.length );
 
@@ -43,10 +43,15 @@ const deploy_contract = async () => {
 	
 	// ------------------ Express App Setup -----------------------------
 	app.use(express.static('public'));
+	// app.use('/public', express.static('public'));
+	app.set('views', __dirname+'/views');
+	app.set('view engine', 'pug');
 	
 	app.use('/', async (req, res) => {
 		res.status(200);
-		res.send(`No. of offfers = ${offers.length} <br> No. of offfers = ${requests.length}`);
+		// res.send(`No. of offfers = ${offers.length} <br> No. of offfers = ${requests.length}`);
+		// res.sendFile(__dirname+'/public/index.html');
+		res.render('index', {n_offers : offers.length , n_requests : requests.length});
 	});
 	
 	const PORT = 3000;
