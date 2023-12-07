@@ -5,6 +5,7 @@ pragma solidity >=0.8.0 <0.9.0;
 contract EgMarket {
     struct Request {
         address owner;
+        uint id;
         uint qty;
     }
 
@@ -12,6 +13,8 @@ contract EgMarket {
         address owner;
         uint qty;
         uint price;
+        address recipient;
+        uint rec_req_id; //recipient request id
     }
 
     address public mainProvider;
@@ -34,22 +37,25 @@ contract EgMarket {
         return offers;
     }
 
-    function placeOffer(uint _qty, uint _price) public {
+    function placeOffer(uint _qty, uint _price, address _recipient, uint _rec_req_id) public {
         // console.log("In placeOffer");
         Offer memory o;
         o.owner = msg.sender;
         o.qty = _qty;
         o.price = _price;
+        o.recipient = _recipient;
+        o.rec_req_id = _rec_req_id;
         offers.push(o);
         // console.log("Out placeOffer");
     }
 
-    function placeRequest(uint _qty) public {
+    function placeRequest(uint _qty, uint _id) public {
         // console.log("In placeRequest");
         require(msg.sender != mainProvider, "Main Provider Can't Ask");
         Request memory r;
         r.owner = msg.sender;
         r.qty = _qty;
+        r.id = _id;
         requests.push(r);
         // console.log("Out placeRequest");
     }

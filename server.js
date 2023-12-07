@@ -3,6 +3,8 @@
 const express = require('express');
 const fs = require('fs');
 const app = express();
+var bodyParser = require('body-parser');
+var urlencodedParser = bodyParser.urlencoded({ extended: false });
 
 const Web3 = require('web3');
 const web3_obj = new Web3( new Web3.providers.HttpProvider("http://127.0.0.1:8545"));
@@ -26,15 +28,16 @@ const deploy_contract = async () => {
 // -------- MAIN --------------
 (async () => {
 	let {contractAddress, accounts} = await deploy_contract();
+	let current = null;
 	// -------- Web3 Contract Instance ----------------------------------
 	const instance =  new web3_obj.eth.Contract(compiledContract.abi, contractAddress);
 	
 	// -------------- Testing transactions ------------------------------
 	let mainProvider = accounts[0];
+	await instance.methods.placeRequest(100,1).send({from : accounts[3],  gas: '9999999'});
 	await instance.methods.setMainProvider(mainProvider).call();
-	await instance.methods.placeOffer(100, 50).send({from : accounts[1], gas: '9999999'});
-	await instance.methods.placeOffer(200, 70).send({from : accounts[2],  gas: '9999999'});
-	await instance.methods.placeRequest(50).send({from : accounts[3],  gas: '9999999'});
+	await instance.methods.placeOffer(100, 50, accounts[3], 1).send({from : accounts[1], gas: '9999999'});
+	await instance.methods.placeOffer(100, 70, accounts[3], 1).send({from : accounts[2],  gas: '9999999'});
 	let offers = await instance.methods.getOffers().call() //.then( (arr) => arr.length );
 	let requests = await instance.methods.getRequests().call() //.then( (arr) => arr.length );
 
@@ -42,16 +45,46 @@ const deploy_contract = async () => {
 	console.log(`n_requests = ${requests.length}`)
 	
 	// ------------------ Express App Setup -----------------------------
-	app.use(express.static('public'));
+	// app.use(express.static('public'));
 	// app.use('/public', express.static('public'));
 	app.set('views', __dirname+'/views');
 	app.set('view engine', 'pug');
 	
-	app.use('/', async (req, res) => {
+	app.get('/', async (req, res) => {
 		res.status(200);
 		// res.send(`No. of offfers = ${offers.length} <br> No. of offfers = ${requests.length}`);
-		// res.sendFile(__dirname+'/public/index.html');
-		res.render('index', {n_offers : offers.length , n_requests : requests.length});
+		// res.render('index', {n_offers : offers.length , n_requests : requests.length});
+		res.sendFile(__dirname+'/views/login.html');
+	});
+
+	app.post('/', urlencodedParser, async (req,res) => {
+		// console.log(req.body);
+		let acc = req.body.account;
+		if(accounts.includes(acc)) {
+			current = acc;
+			res.redirect('/dashboard');
+		}
+		else {
+			res.redirect('/');
+		}
+	});
+
+	app.get('/dashboard', async (req,res) => {
+		if(current==null){
+			res.redirect('/');
+		}
+		res.render('dashboard', {offers : offers , requests : requests});
+	});
+
+	app.post('/place_request', urlencodedParser, async (req,res) => {
+		console.log(req.body);
+		let ind = req.body.req_ind;
+		eg_req = requests[parseInt(ind)];
+		// add field for price in the form
+		// handle 
+		await instance.methods.placeOffer(eg_req.qty, 20, eg_req.owner, 1).send({from : accounts[1], gas: '9999999'});
+		//change price and rec_req_id param
+		res.redirect('/dashboard');
 	});
 	
 	const PORT = 3000;

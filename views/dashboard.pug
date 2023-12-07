@@ -1,0 +1,21 @@
+html 
+    head
+    
+    body No. of offfers = #{offers.length}
+        br
+        | No. of requests = #{requests.length}
+
+        h1 All Requests
+        table
+            thead
+                tr
+                th Request Qty
+                th Place offer
+            tbody
+                each request, i in requests
+                    tr
+                        td #{request.qty}
+                        td
+                            form(action="/place_request", method="post")
+                                input(type="hidden", name="req_ind", id="req_ind", value=i) 
+                                input(type="submit", value="Make Offer")
