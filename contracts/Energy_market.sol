@@ -15,16 +15,43 @@ contract EgMarket {
         uint price;
         address recipient;
         uint rec_req_id; //recipient request id
+        bool isSet; // to find in mapping
     }
 
     address public mainProvider;
     Request[] public requests;
     Offer[] public offers;
+    mapping(uint => Offer) best_offer;
 
     function setMainProvider(address _mainProvider) public {
         mainProvider = _mainProvider;
     }
 
+    function setBestOffer(uint req_ind, Offer memory o) public returns (bool) { // validate offer then set it as best
+        if(!best_offer[req_ind].isSet) {
+            best_offer[req_ind] = o;
+            best_offer[req_ind].isSet = true;
+            return true;
+        }
+        if((requests[req_ind].owner != o.recipient) || (requests[req_ind].id != o.rec_req_id) || (requests[req_ind].qty != o.qty)) {
+            return false;
+        }
+
+        if(best_offer[req_ind].price <= o.price) {
+            return false;
+        }
+
+        best_offer[req_ind].isSet = false; // set old offer to false
+        best_offer[req_ind] = o;
+        best_offer[req_ind].isSet = true;
+        return true;
+    }
+
+    function getBestOffer(uint req_ind) public view returns ( Offer memory) {
+        return best_offer[req_ind];
+    }
+
+    
     function getMainProvider() public view returns (address) {
         return mainProvider;
     }
@@ -37,7 +64,7 @@ contract EgMarket {
         return offers;
     }
 
-    function placeOffer(uint _qty, uint _price, address _recipient, uint _rec_req_id) public {
+    function placeOffer(uint _qty, uint _price, address _recipient, uint _rec_req_id, uint req_ind) public {
         // console.log("In placeOffer");
         Offer memory o;
         o.owner = msg.sender;
@@ -46,6 +73,7 @@ contract EgMarket {
         o.recipient = _recipient;
         o.rec_req_id = _rec_req_id;
         offers.push(o);
+        setBestOffer(req_ind, o); 
         // console.log("Out placeOffer");
     }
 
