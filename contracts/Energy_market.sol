@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity >=0.8.0 <0.9.0;
-// import "truffle/console.sol";
 
 contract EgMarket {
     struct Request {
@@ -64,34 +63,35 @@ contract EgMarket {
         return offers;
     }
 
-    function placeOffer(uint _qty, uint _price, address _recipient, uint _rec_req_id, uint req_ind) public {
-        // console.log("In placeOffer");
+    function placeOffer(uint _price, uint req_ind) public {
+        
+        Request memory req = requests[req_ind];
         Offer memory o;
         o.owner = msg.sender;
-        o.qty = _qty;
+        o.qty = req.qty; //_qty;
         o.price = _price;
-        o.recipient = _recipient;
-        o.rec_req_id = _rec_req_id;
+        o.recipient = req.owner; //_recipient;
+        o.rec_req_id = req.id;//_rec_req_id;
         offers.push(o);
         setBestOffer(req_ind, o); 
-        // console.log("Out placeOffer");
+        
     }
 
     function placeRequest(uint _qty, uint _id) public {
-        // console.log("In placeRequest");
+        
         require(msg.sender != mainProvider, "Main Provider Can't Ask");
         Request memory r;
         r.owner = msg.sender;
         r.qty = _qty;
         r.id = _id;
         requests.push(r);
-        // console.log("Out placeRequest");
+        
     }
 
     // remove offer, request
 
     function removeRequest(uint index) public {
-        // console.log("In removeRequest");
+        
         require(index < requests.length, "'Request' index out of range");
         
         for (uint i = index; i<requests.length-1; i++){
@@ -99,11 +99,11 @@ contract EgMarket {
         }
         // delete requests[requests.length - 1];
         requests.pop();
-        // console.log("Out removeRequest");
+        
     }
 
     function removeOffer(uint index) public {
-        // console.log("In removeOffer");
+        
         require(index < offers.length, "'Offer' index out of range");
         
         for (uint i = index; i<offers.length-1; i++){
@@ -111,6 +111,6 @@ contract EgMarket {
         }
         // delete offers[offers.length - 1];
         offers.pop();
-        // console.log("Out removeOffer");
+        
     }
 }

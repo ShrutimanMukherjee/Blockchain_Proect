@@ -1,21 +1,44 @@
 html 
     head
-    
-    body No. of offfers = #{offers.length}
+        title Dashboard
+    body 
+        h1 Account : #{current}
+
+        No. of offfers = #{offers.length}
         br
         | No. of requests = #{requests.length}
 
-        h1 All Requests
+        h2 All Requests
         table
             thead
                 tr
-                th Request Qty
-                th Place offer
+                    th Request Qty
+                    th Place offer
             tbody
                 each request, i in requests
                     tr
                         td #{request.qty}
                         td
-                            form(action="/place_request", method="post")
-                                input(type="hidden", name="req_ind", id="req_ind", value=i) 
+                            form(action="/place_offer", method="post")
+                                input#req_ind(type="hidden", name="req_ind", value=i)
+
+                                label(for='price')  Price: 
+                                input#price(type='number' name='price' min='0' required='')
+
                                 input(type="submit", value="Make Offer")
+        h2 Your Requests
+        table
+            thead
+                tr
+                    th Request Qty
+                    th Best Offer
+            tbody
+                each request, i in requests
+                    if request.owner == current
+                        tr
+                            td #{request.qty}
+                            td
+                                #{best_offers_lst[i].price}
+                                form(action="/accept_offer", method="post")
+                                    input#req_ind(type="hidden", name="req_ind", value=i)
+                                    input(type="submit", value="Accept Offer")

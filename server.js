@@ -10,6 +10,10 @@ const Web3 = require('web3');
 const web3_obj = new Web3( new Web3.providers.HttpProvider("http://127.0.0.1:8545"));
 const compiledContract = require('./build/contracts/EgMarket.json'); // compiled in advance using truffle
 
+class HouseNode {
+	--
+}
+
 // -------- Deploy contract [! Ensure working Ganache] --------------
 const deploy_contract = async () => {
     let accounts =  await web3_obj.eth.getAccounts();
@@ -32,14 +36,32 @@ const deploy_contract = async () => {
 	// -------- Web3 Contract Instance ----------------------------------
 	const instance =  new web3_obj.eth.Contract(compiledContract.abi, contractAddress);
 	
-	// -------------- Testing transactions ------------------------------
-	let mainProvider = accounts[0];
-	await instance.methods.placeRequest(100,1).send({from : accounts[3],  gas: '9999999'});
-	await instance.methods.setMainProvider(mainProvider).call();
-	await instance.methods.placeOffer(100, 50, accounts[3], 1).send({from : accounts[1], gas: '9999999'});
-	await instance.methods.placeOffer(100, 70, accounts[3], 1).send({from : accounts[2],  gas: '9999999'});
-	let offers = await instance.methods.getOffers().call() //.then( (arr) => arr.length );
-	let requests = await instance.methods.getRequests().call() //.then( (arr) => arr.length );
+	// -------------- Initial Simulated transactions ------------------------------
+	await instance.methods.setMainProvider(accounts[0]).send({from : accounts[0],  gas: '9999999'});
+    let mainProvider = await instance.methods.getMainProvider().call();
+    console.log(`Main provider set to --> ${mainProvider}`);
+
+    await instance.methods.placeRequest(200,0).send({from : accounts[3],  gas: '9999999'});
+    await instance.methods.placeRequest(100,1).send({from : accounts[3],  gas: '9999999'});
+
+	await instance.methods.placeOffer(50, 0).send({from : accounts[1], gas: '9999999'});
+	await instance.methods.placeOffer(70,0).send({from : accounts[2],  gas: '9999999'});
+    await instance.methods.placeOffer(20, 0).send({from : accounts[4],  gas: '9999999'}); // best 0
+
+    await instance.methods.placeOffer(50, 1).send({from : accounts[1], gas: '9999999'});
+	await instance.methods.placeOffer(70, 1).send({from : accounts[2],  gas: '9999999'});
+    await instance.methods.placeOffer(20, 1).send({from : accounts[4],  gas: '9999999'}); // best 1
+
+	let offers = await instance.methods.getOffers().call();
+	let requests = await instance.methods.getRequests().call();
+
+    console.log(`Requests = ${JSON.stringify(requests)}`);
+    console.log(`Offers = ${JSON.stringify(offers)}`);
+
+    console.log("Best Offers for requests:");
+    for( i=0; i<requests.length; i++ ) {
+        console.log(` ${i} ---- ${ JSON.stringify(await instance.methods.getBestOffer(i).call())}`);
+    }
 
 	console.log(`n_offers = ${offers.length}`)
 	console.log(`n_requests = ${requests.length}`)
@@ -73,17 +95,32 @@ const deploy_contract = async () => {
 		if(current==null){
 			res.redirect('/');
 		}
-		res.render('dashboard', {offers : offers , requests : requests});
+		best_offers_lst = [];
+		for( i=0; i<requests.length; i++ ) {
+			let curr_best_offer = await instance.methods.getBestOffer(i).call();
+			if(curr_best_offer.isSet) {
+				best_offer_lst.push(curr_best_offer);
+			}
+			else {
+				best_offer_lst.push(null);
+			}
+		}
+
+		res.render('dashboard', {offers : offers,
+								requests : requests, 
+								current : current, 
+								accounts : accounts, 
+								best_offers_lst : best_offers_lst});
 	});
 
-	app.post('/place_request', urlencodedParser, async (req,res) => {
+	app.post('/place_offer', urlencodedParser, async (req,res) => {
 		console.log(req.body);
 		let ind = req.body.req_ind;
-		eg_req = requests[parseInt(ind)];
-		// add field for price in the form
-		// handle 
-		await instance.methods.placeOffer(eg_req.qty, 20, eg_req.owner, 1).send({from : accounts[1], gas: '9999999'});
-		//change price and rec_req_id param
+		let eg_req = requests[parseInt(ind)];
+		let offer_price = req.body.price;
+		// handle balance check before placing
+		--
+		await instance.methods.placeOffer(offer_price, ind).send({from : current, gas: '9999999'});
 		res.redirect('/dashboard');
 	});
 	

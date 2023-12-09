@@ -4,3 +4,16 @@
 - request accepts offer --> delete request, its best offer using contract methods
                         --> update request - offer map as per new request list
                             i.e. shift all values by 1 and delete the last
+
+- Current Account and Logout - endpoint
+- Your Requests with best offers
+- HouseNode Class   --> Account Address
+                    --> Balance Energy
+                    --> Balance Money
+                    --> Total Offered Energy (<= Balance Energy)
+- Form to POST energy request
+- Form to simulate POST consumption
+
+# ------- Drawacks ---------
+Login
+Offer deletion from server
