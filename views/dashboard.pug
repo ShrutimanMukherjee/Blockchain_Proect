@@ -1,12 +1,21 @@
 html 
     head
         title Dashboard
-    body 
-        h1 Account : #{current}
+    body
+        header 
+            h1 Account : #{current}
+            form(action="/logout")
+                input(type="submit", value="logout")
 
         No. of offfers = #{offers.length}
         br
         | No. of requests = #{requests.length}
+
+        h2 Make Request
+        form(action="/place_request", method="post")
+            label(for='qty')  Quantity: 
+            input#qty(type='number' name='qty' min='0' required='')
+            input(type="submit", value="Make Request")
 
         h2 All Requests
         table

@@ -12,6 +12,7 @@
                     --> Balance Money
                     --> Total Offered Energy (<= Balance Energy)
 - Form to POST energy request
+- Form to POST acceptance of offer
 - Form to simulate POST consumption
 
 # ------- Drawacks ---------

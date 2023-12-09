@@ -63,7 +63,7 @@ contract EgMarket {
         return offers;
     }
 
-    function placeOffer(uint _price, uint req_ind) public {
+    function placeOffer(uint _price, uint req_ind) public returns (bool){
         
         Request memory req = requests[req_ind];
         Offer memory o;
@@ -73,8 +73,7 @@ contract EgMarket {
         o.recipient = req.owner; //_recipient;
         o.rec_req_id = req.id;//_rec_req_id;
         offers.push(o);
-        setBestOffer(req_ind, o); 
-        
+        return setBestOffer(req_ind, o);         
     }
 
     function placeRequest(uint _qty, uint _id) public {

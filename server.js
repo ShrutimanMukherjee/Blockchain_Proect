@@ -11,7 +11,13 @@ const web3_obj = new Web3( new Web3.providers.HttpProvider("http://127.0.0.1:854
 const compiledContract = require('./build/contracts/EgMarket.json'); // compiled in advance using truffle
 
 class HouseNode {
-	--
+	constructor( address, energy, money, offered_eg, n_requests ) {
+		this.address = address;
+		this.energy = energy;
+		this.money = money;
+		this.offered_eg = offered_eg;
+		this.n_requests = n_requests;
+	}
 }
 
 // -------- Deploy contract [! Ensure working Ganache] --------------
@@ -32,7 +38,14 @@ const deploy_contract = async () => {
 // -------- MAIN --------------
 (async () => {
 	let {contractAddress, accounts} = await deploy_contract();
-	let current = null;
+
+	let houseNodes = {};
+	for(addr in accounts) {
+		houseNodes[addr] = new HouseNode(addr, 2000, 100,0, 0);
+	}
+	houseNodes[accounts[0]].energy = 200000;
+
+	let current = null; //logged in address
 	// -------- Web3 Contract Instance ----------------------------------
 	const instance =  new web3_obj.eth.Contract(compiledContract.abi, contractAddress);
 	
@@ -67,20 +80,15 @@ const deploy_contract = async () => {
 	console.log(`n_requests = ${requests.length}`)
 	
 	// ------------------ Express App Setup -----------------------------
-	// app.use(express.static('public'));
-	// app.use('/public', express.static('public'));
 	app.set('views', __dirname+'/views');
 	app.set('view engine', 'pug');
 	
 	app.get('/', async (req, res) => {
 		res.status(200);
-		// res.send(`No. of offfers = ${offers.length} <br> No. of offfers = ${requests.length}`);
-		// res.render('index', {n_offers : offers.length , n_requests : requests.length});
 		res.sendFile(__dirname+'/views/login.html');
 	});
 
 	app.post('/', urlencodedParser, async (req,res) => {
-		// console.log(req.body);
 		let acc = req.body.account;
 		if(accounts.includes(acc)) {
 			current = acc;
@@ -89,6 +97,11 @@ const deploy_contract = async () => {
 		else {
 			res.redirect('/');
 		}
+	});
+
+	app.use('/logout', async (req, res) => {
+		current = null;
+		res.redirect('/');
 	});
 
 	app.get('/dashboard', async (req,res) => {
@@ -105,7 +118,8 @@ const deploy_contract = async () => {
 				best_offer_lst.push(null);
 			}
 		}
-
+		offers = await instance.methods.getOffers().call();
+		requests = await instance.methods.getRequests().call();
 		res.render('dashboard', {offers : offers,
 								requests : requests, 
 								current : current, 
@@ -118,9 +132,49 @@ const deploy_contract = async () => {
 		let ind = req.body.req_ind;
 		let eg_req = requests[parseInt(ind)];
 		let offer_price = req.body.price;
-		// handle balance check before placing
-		--
-		await instance.methods.placeOffer(offer_price, ind).send({from : current, gas: '9999999'});
+		// handle eg balance check before placing
+		if(eg_req.qty  > houseNodes[current].energy - houseNodes[current].offered_eg) {
+			res.send(`<h1> Insufficient Energy Balance </h1> <h3> Redirecting in 2s <h3>`);
+			setTimeout(res.redirect, 2000, '/dashboard');
+			return;
+		}
+		let offer_res = await instance.methods.placeOffer(offer_price, ind).send({from : current, gas: '9999999'});
+		offers = await instance.methods.getOffers().call();
+		if(offer_res) {
+			houseNodes[current].offered_eg += eg_req.qty;
+		}
+		res.redirect('/dashboard');
+	});
+
+	app.post('/place_request', urlencodedParser, async (req,res) => {
+		let eg_qty = req.body.qty;
+		await instance.methods.placeRequest(eg_qty,houseNodes[current].n_requests).send({from : current,  gas: '9999999'});
+		requests = await instance.methods.getRequests().call();
+		houseNodes[current].n_requests += 1;
+		res.redirect('/dashboard');
+	});
+
+	app.post('/accept_offer', urlencodedParser, async (req,res) => {
+		offers = await instance.methods.getOffers().call();
+		requests = await instance.methods.getRequests().call();
+
+		let ind = req.body.req_ind;
+		let eg_req = requests[ind];
+		let best_off = await instance.methods.getBestOffer(ind).call();
+
+		try {
+			web3_obj.eth.sendTransaction({	from : current,
+											to : eg_req.owner,
+											value : best_off.price
+										});
+		}
+		catch(err) {
+			console.log(err);
+			res.send(`<p> ${err} </p> <h3> Redirecting in 2s <h3>`);
+			setTimeout(res.redirect, 2000, '/dashboard');
+			return;
+		}
+		// res.send(`<h1>Pending Page</h1>`);
 		res.redirect('/dashboard');
 	});
 	
