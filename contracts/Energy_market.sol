@@ -95,10 +95,11 @@ contract EgMarket {
         
         for (uint i = index; i<requests.length-1; i++){
             requests[i] = requests[i+1];
+            best_offer[i] = best_offer[i+1];
         }
         // delete requests[requests.length - 1];
-        requests.pop();
-        
+        best_offer[requests.length - 1].isSet = false;
+        requests.pop();        
     }
 
     function removeOffer(uint index) public {

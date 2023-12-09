@@ -7,9 +7,22 @@ html
             form(action="/logout")
                 input(type="submit", value="logout")
 
-        No. of offfers = #{offers.length}
-        br
-        | No. of requests = #{requests.length}
+            | No. of offfers = #{offers.length}
+            br
+            | No. of requests = #{requests.length}
+
+        h1 Your Accont Info
+        ul
+            li Energy Balance = #{curr_obj.energy}
+            li Ethers = #{curr_obj.money}
+            li No. of Requests = #{curr_obj.n_requests}
+            li Energy offered by you (accepted / not accepted) = #{curr_obj.offered_eg}
+        
+        h2 Energy Consumption
+        form(action="/consume", method="post")
+            label(for='qty')  Consmption Quantity: 
+            input#qty(type='number' name='qty' min='0' required='')
+            input(type="submit", value="Consume")
 
         h2 Make Request
         form(action="/place_request", method="post")
@@ -47,7 +60,10 @@ html
                         tr
                             td #{request.qty}
                             td
-                                #{best_offers_lst[i].price}
-                                form(action="/accept_offer", method="post")
-                                    input#req_ind(type="hidden", name="req_ind", value=i)
-                                    input(type="submit", value="Accept Offer")
+                                if best_offers_lst[i]
+                                    #{best_offers_lst[i].price}
+                                    form(action="/accept_offer", method="post")
+                                        input#req_ind(type="hidden", name="req_ind", value=i)
+                                        input(type="submit", value="Accept Offer")
+                                else
+                                    | No offers yet
