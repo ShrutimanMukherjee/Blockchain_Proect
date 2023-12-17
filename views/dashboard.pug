@@ -1,8 +1,9 @@
 html 
     head
         title Dashboard
+        link(rel="stylesheet" href="/dashboard.css")
     body
-        header 
+        header.info 
             h1 Account : #{current}
             form(action="/logout")
                 input(type="submit", value="logout")
@@ -12,7 +13,7 @@ html
             | No. of requests = #{requests.length}
 
         h1 Your Accont Info
-        ul
+        ul.info
             li Energy Balance = #{curr_obj.energy}
             li Ethers = #{curr_obj.money}
             li No. of Requests = #{curr_obj.n_requests}
@@ -61,9 +62,10 @@ html
                             td #{request.qty}
                             td
                                 if best_offers_lst[i]
-                                    #{best_offers_lst[i].price}
-                                    form(action="/accept_offer", method="post")
-                                        input#req_ind(type="hidden", name="req_ind", value=i)
-                                        input(type="submit", value="Accept Offer")
+                                    div.best-offer
+                                        #{best_offers_lst[i].price}
+                                        form(action="/accept_offer", method="post")
+                                            input#req_ind(type="hidden", name="req_ind", value=i)
+                                            input(type="submit", value="Accept Offer")
                                 else
-                                    | No offers yet
+                                    p.no-offer No offers yet
