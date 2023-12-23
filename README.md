@@ -1,3 +1,11 @@
+# Energy Trading Platform using Ethereum Blockchain
+
+## Members
+- Chetan Patil
+- Aditya Narayane
+- Vedang Ranmale
+- Shrutiman Mukherjee
+
 Log In Page
 ![image](https://github.com/ShrutimanMukherjee/Blockchain_Proect/assets/88941689/f966c112-ce47-4696-be87-fe840f6749c9)
 
