@@ -87,7 +87,8 @@ const deploy_contract = async () => {
 	// ------------------ Express App Setup -----------------------------
 	app.set('views', __dirname+'/views');
 	app.set('view engine', 'pug');
-	app.use(express.static(path.join(__dirname, "public")));
+	// app.use(express.static(path.join(__dirname, "public")));
+	app.use(express.static(__dirname+'/public'))
 	
 	app.get('/', async (req, res) => {
 		res.status(200);

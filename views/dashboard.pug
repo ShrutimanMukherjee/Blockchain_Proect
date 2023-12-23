@@ -5,12 +5,13 @@ html
     body
         header.info 
             h1 Account : #{current}
-            form(action="/logout")
-                input(type="submit", value="logout")
+            
+            p No. of offfers = #{offers.length}
+            p No. of requests = #{requests.length}
 
-            | No. of offfers = #{offers.length}
-            br
-            | No. of requests = #{requests.length}
+            form(action="/logout")
+                input(type="submit", value="Log Out")
+                style.align-self flex-start
 
         h1 Your Accont Info
         ul.info
@@ -69,3 +70,5 @@ html
                                             input(type="submit", value="Accept Offer")
                                 else
                                     p.no-offer No offers yet
+
+        footer
